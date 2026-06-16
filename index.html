@@ -346,7 +346,7 @@ async function fetchFallback(){
 /* ====================== STATE + LOAD ====================== */
 let MATCHES=[], lastOk=null, usingFallback=false;
 
-async function load(){
+async function load(bg){
   try{
     MATCHES = await fetchPrimary();
     usingFallback=false; lastOk=new Date(); setStatus(true);
@@ -356,10 +356,10 @@ async function load(){
       usingFallback=true; lastOk=new Date(); setStatus(true,true);
     }catch(e2){
       setStatus(false);
-      if(!MATCHES.length){ render(); return; }
+      if(!MATCHES.length){ render(bg); return; }
     }
   }
-  render();
+  render(bg);
 }
 function setStatus(ok,fb){
   const dot=document.getElementById("dot"), t=document.getElementById("statusText");
@@ -451,14 +451,23 @@ function standings(){
 
 /* ====================== RENDER CÁC TAB ====================== */
 let TAB="today";
-function render(){
+// bg=true: cập nhật ngầm (auto-refresh) -> không phá trải nghiệm đang dùng
+function render(bg){
   const v=document.getElementById("view");
   if(!MATCHES.length){ v.innerHTML=`<div class="empty"><span class="ic">📡</span>Chưa lấy được dữ liệu. Sẽ tự thử lại…</div>`; return; }
+  if(bg){
+    // đang mở popup lịch sử -> không đụng gì
+    if(document.getElementById("modal").classList.contains("show")) return;
+    // đang ở tab có ô tìm kiếm -> chỉ cập nhật danh sách, giữ nguyên ô tìm + con trỏ + cuộn
+    if((TAB==="fixtures"||TAB==="results") && document.getElementById("q")){ applyFilter(); return; }
+  }
+  const y=window.scrollY;
   if(TAB==="today") v.innerHTML=renderToday();
   else if(TAB==="results") v.innerHTML=renderResults();
   else if(TAB==="fixtures") v.innerHTML=renderFixtures();
   else v.innerHTML=renderStandings();
   bindFilter();
+  if(bg) window.scrollTo(0,y); // giữ vị trí cuộn khi cập nhật ngầm
 }
 
 function renderToday(){
@@ -526,19 +535,21 @@ function renderStandings(){
 }
 
 /* lọc theo đội/bảng — dùng chung cho tab Kết quả (đã đá) và Lịch đấu (sắp đá) */
-function bindFilter(){
+function applyFilter(){
   const q=document.getElementById("q"), gsel=document.getElementById("gsel"), flist=document.getElementById("flist");
   if(!q||!flist) return;
-  const apply=()=>{
-    const kw=norm(q.value), g=gsel.value, results=(TAB==="results");
-    let list=MATCHES.filter(m=> results ? (m.status==="finished"||m.status==="live") : m.status==="upcoming");
-    if(g) list=list.filter(m=>m.group===g);
-    if(kw) list=list.filter(m=>matchSearchStr(m).includes(kw));
-    list.sort((a,b)=> results ? ((b.kickoff||0)-(a.kickoff||0)) : ((a.kickoff||8e15)-(b.kickoff||8e15)));
-    flist.innerHTML = list.length ? groupByDay(list,results)
-      : `<div class="empty"><span class="ic">🔍</span>Không tìm thấy trận phù hợp.</div>`;
-  };
-  q.oninput=apply; gsel.onchange=apply; apply();
+  const kw=norm(q.value), g=gsel.value, results=(TAB==="results");
+  let list=MATCHES.filter(m=> results ? (m.status==="finished"||m.status==="live") : m.status==="upcoming");
+  if(g) list=list.filter(m=>m.group===g);
+  if(kw) list=list.filter(m=>matchSearchStr(m).includes(kw));
+  list.sort((a,b)=> results ? ((b.kickoff||0)-(a.kickoff||0)) : ((a.kickoff||8e15)-(b.kickoff||8e15)));
+  flist.innerHTML = list.length ? groupByDay(list,results)
+    : `<div class="empty"><span class="ic">🔍</span>Không tìm thấy trận phù hợp.</div>`;
+}
+function bindFilter(){
+  const q=document.getElementById("q"), gsel=document.getElementById("gsel");
+  if(!q) return;
+  q.oninput=applyFilter; gsel.onchange=applyFilter; applyFilter();
 }
 
 /* ====================== LỊCH SỬ THI ĐẤU CỦA ĐỘI (modal) ====================== */
@@ -597,9 +608,9 @@ document.getElementById("tabs").addEventListener("click",e=>{
   b.classList.add("on"); TAB=b.dataset.tab; closeModal(); render();
 });
 
-load();
-setInterval(load, 30000);             // tự cập nhật mỗi 30s
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(); });
+load(false);                                   // tải lần đầu (vẽ đầy đủ)
+setInterval(()=>load(true), 30000);            // tự cập nhật ngầm mỗi 30s
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) load(true); });
 </script>
 </body>
 </html>
