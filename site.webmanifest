@@ -1,0 +1,18 @@
+{
+  "name": "World Cup 2026 — Bảng tỷ số",
+  "short_name": "WC 2026",
+  "description": "Kết quả, lịch đấu & bảng xếp hạng World Cup 2026 — tự động cập nhật.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08543C",
+  "theme_color": "#08543C",
+  "icons": [
+    { "src": "favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "favicon.svg", "type": "image/svg+xml" }
+  ]
+}

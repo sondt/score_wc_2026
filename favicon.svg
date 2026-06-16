@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08543C"/>
+      <stop offset="1" stop-color="#0E8A63"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.15" r="0.7">
+      <stop offset="0" stop-color="#F5B700" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#F5B700" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <rect width="64" height="64" rx="15" fill="url(#glow)"/>
+  <!-- soccer ball -->
+  <g transform="translate(32 32)">
+    <circle r="18.5" fill="#fff" stroke="#0A3D2C" stroke-width="1.2"/>
+    <!-- central pentagon -->
+    <polygon points="0,-6.2 5.9,-1.9 3.6,5 -3.6,5 -5.9,-1.9" fill="#13211B"/>
+    <!-- spokes to rim -->
+    <g stroke="#13211B" stroke-width="1.6" stroke-linecap="round">
+      <line x1="0" y1="-6.2" x2="0" y2="-16"/>
+      <line x1="5.9" y1="-1.9" x2="15" y2="-7"/>
+      <line x1="3.6" y1="5" x2="9.5" y2="14"/>
+      <line x1="-3.6" y1="5" x2="-9.5" y2="14"/>
+      <line x1="-5.9" y1="-1.9" x2="-15" y2="-7"/>
+    </g>
+    <!-- rim patches -->
+    <g fill="#13211B">
+      <polygon points="0,-16 4,-13 2.6,-9 -2.6,-9 -4,-13"/>
+      <polygon points="15.5,-6 17,-1.5 13,1.5 10,-2 12,-6"/>
+      <polygon points="-15.5,-6 -12,-6 -10,-2 -13,1.5 -17,-1.5"/>
+      <polygon points="9.8,14.5 7,11.5 9.5,8 13.5,9.5 13,13.5"/>
+      <polygon points="-9.8,14.5 -13,13.5 -13.5,9.5 -9.5,8 -7,11.5"/>
+    </g>
+  </g>
+</svg>
