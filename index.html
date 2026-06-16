@@ -149,6 +149,14 @@
   .mrow .opp span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mrow .sc{font-family:var(--display);font-weight:800;font-size:1rem;text-align:right;white-space:nowrap}
   .mrow .dt{font-size:.68rem;color:var(--muted);font-weight:600;text-align:right;line-height:1.3}
+  @keyframes pop{from{transform:scale(.94) translateY(8px);opacity:0}to{transform:none;opacity:1}}
+  /* Desktop: modal nổi giữa màn hình thay vì dính đáy */
+  @media (min-width:600px){
+    #modal{align-items:center;padding:24px}
+    #modal .bk{background:rgba(8,32,23,.45);backdrop-filter:blur(3px)}
+    #modal .sheet{max-width:480px;max-height:80vh;border-radius:20px;
+      padding:22px 22px 26px;animation:pop .22s ease;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+  }
 
   /* Filter */
   .filter{display:flex;gap:8px;margin:4px 4px 12px;align-items:center}
