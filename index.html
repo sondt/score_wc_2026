@@ -92,6 +92,16 @@
   .team img{width:30px;height:22px;object-fit:cover;border-radius:3px;flex:0 0 auto;
     box-shadow:0 0 0 1px rgba(0,0,0,.06)}
   .team .nm{font-weight:700;font-size:.92rem;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* phần tử tương tác */
+  .team.team-link{cursor:pointer}
+  .team.team-link:hover .nm{text-decoration:underline;text-decoration-color:var(--primary)}
+  .team.team-link:active{opacity:.55}
+  .grp-tag.grp-link{cursor:pointer;transition:.15s}
+  .grp-tag.grp-link:hover{background:var(--primary);color:#fff}
+  .mrow .opp.team-link{cursor:pointer}
+  .mrow .opp.team-link:hover span{text-decoration:underline}
+  .grp-block.flash{animation:flash 1.7s ease}
+  @keyframes flash{0%,35%{box-shadow:0 0 0 3px var(--accent),var(--card-sh)}100%{box-shadow:var(--card-sh)}}
   .score{font-family:var(--display);font-weight:800;font-size:1.7rem;line-height:1;
     min-width:64px;text-align:center;letter-spacing:.02em}
   .score.vs{font-size:.8rem;color:var(--muted);font-weight:700;font-family:var(--body)}
@@ -387,8 +397,10 @@ function dayKeyVN(d){
 function todayVN(){ return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Ho_Chi_Minh"}); }
 
 function teamHTML(en,side){
-  return `<div class="team ${side}"><img loading="lazy" src="${flag(en)}" alt=""
-    onerror="this.style.visibility='hidden'"/><span class="nm">${esc(viName(en))}</span></div>`;
+  const link = en ? ` team-link` : "";   // chỉ bấm được khi đã biết đội
+  const attr = en ? ` data-team="${esc(en)}"` : "";
+  return `<div class="team ${side}${link}"${attr}><img loading="lazy" src="${flag(en)}" alt=""
+    onerror="this.style.visibility='hidden'"/><span class="nm">${esc(viName(en)||"Chưa xác định")}</span></div>`;
 }
 function scoreHTML(m){
   if(m.status==="upcoming"||m.hs==null) return `<div class="score vs">VS</div>`;
@@ -396,8 +408,9 @@ function scoreHTML(m){
   return `<div class="score ${live}">${m.hs} <span style="opacity:.4">-</span> ${m.as}</div>`;
 }
 function metaHTML(m){
-  const left = m.isKnockout? `<span class="grp-tag">${esc(m.roundLabel)}</span>`
-                           : `<span class="grp-tag">${esc(m.roundLabel)}</span>`;
+  const left = (!m.isKnockout && m.group)
+    ? `<span class="grp-tag grp-link" data-group="${esc(m.group)}">${esc(m.roundLabel)} ›</span>`
+    : `<span class="grp-tag">${esc(m.roundLabel)}</span>`;
   let right="";
   if(m.status==="live") right=`<span class="live-tag"><span class="ld"></span>LIVE ${esc(m.minute||"")}</span>`;
   else if(m.status==="finished") right=`<span style="color:var(--muted)">Kết thúc</span>`;
@@ -528,7 +541,7 @@ function renderStandings(){
       <td class="tn team-link" data-team="${esc(r.t)}"><img src="${flag(r.t)}" onerror="this.style.display='none'"/><span class="lk">${esc(viName(r.t))}</span></td>
       <td>${r.P}</td><td>${r.W}-${r.D}-${r.L}</td>
       <td>${r.GF-r.GA>0?"+":""}${r.GF-r.GA}</td><td class="pts">${r.Pts}</td></tr>`).join("");
-    return `<div class="grp-block"><div class="grp-head">Bảng ${g}</div>
+    return `<div class="grp-block" id="grp-${g}"><div class="grp-head">Bảng ${g}</div>
       <table><thead><tr><th></th><th style="text-align:left">Đội</th><th>Đ</th><th>T-H-B</th><th>HS</th><th>Đ</th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
   }).join("")+`<div class="empty" style="padding:12px;font-size:.74rem">👆 Chạm vào tên đội để xem lịch sử thi đấu.<br>Tô đậm = 2 đội đầu bảng (đi tiếp). Sắp xếp: Điểm → Hiệu số → Bàn thắng.</div>`;
@@ -576,7 +589,7 @@ function openTeam(en){
     const liveTag=m.status==="live"?' <span style="color:var(--live);font-weight:800">●LIVE</span>':"";
     return `<div class="mrow">
       <span class="rr ${r.cls}">${r.txt}</span>
-      <span class="opp"><img src="${flag(opp)}" onerror="this.style.display='none'"/><span>${esc(viName(opp))}</span></span>
+      <span class="opp${opp?' team-link':''}"${opp?` data-team="${esc(opp)}"`:''}><img src="${flag(opp)}" onerror="this.style.display='none'"/><span>${esc(viName(opp)||"Chưa xác định")}</span></span>
       <span class="sc"${played?"":' style="color:var(--muted);font-size:.8rem"'}>${sc}</span>
       <span class="dt">${esc(ctx)}${liveTag}<br>${t.date||""}${played?"":" "+(t.time||"")}</span>
     </div>`;
@@ -592,11 +605,30 @@ function openTeam(en){
   document.getElementById("modal").classList.add("show");
 }
 function closeModal(){ document.getElementById("modal").classList.remove("show"); }
+// chuyển sang tab Bảng xếp hạng, cuộn tới đúng bảng và làm nổi bật
+function gotoGroup(g){
+  closeModal();
+  TAB="standings";
+  [...document.querySelectorAll("#tabs button")].forEach(x=>x.classList.toggle("on",x.dataset.tab==="standings"));
+  render();
+  const el=document.getElementById("grp-"+g);
+  if(el){
+    const nav=document.querySelector("nav");
+    const top=el.getBoundingClientRect().top+window.scrollY-((nav?nav.offsetHeight:0)+10);
+    window.scrollTo({top,behavior:"smooth"});
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+    setTimeout(()=>el.classList.remove("flash"),1700);
+  }
+}
 document.getElementById("view").addEventListener("click",e=>{
+  const g=e.target.closest(".grp-link");
+  if(g&&g.dataset.group){ gotoGroup(g.dataset.group); return; }
   const t=e.target.closest(".team-link");
   if(t&&t.dataset.team) openTeam(t.dataset.team);
 });
 document.getElementById("modal").addEventListener("click",e=>{
+  const t=e.target.closest(".team-link");
+  if(t&&t.dataset.team){ openTeam(t.dataset.team); return; }   // bấm đối thủ -> xem đội đó
   if(e.target.hasAttribute("data-close")) closeModal();
 });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
